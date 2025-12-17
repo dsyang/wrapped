@@ -48,7 +48,7 @@ Thank you.
     await fetchGit();
   }
 
-  await saveData({ updateTimestap: true });
+  await saveData({ updateTimestamp: true });
 
   console.log(`\nSaved data to ${getDataPath(CONFIG)}`);
 }

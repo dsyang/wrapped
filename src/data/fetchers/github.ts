@@ -292,14 +292,6 @@ async function getOctokit() {
         // Retry up to 3 times for secondary rate limits
         return retryCount < 3;
       },
-      onAbuseLimit: (retryAfter, options, octokit, retryCount) => {
-        console.log(
-          `Abuse detection triggered for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds! (attempt ${retryCount}/2)`,
-        );
-
-        // Retry up to 2 times for abuse detection
-        return retryCount < 2;
-      },
     },
     request: {
       retries: 3,

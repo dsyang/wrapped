@@ -16,7 +16,7 @@ import { getDataPath, getLightDataPath } from "../helpers/data-path.js";
  */
 
 interface SaveDataOptions {
-  updateTimestap: boolean;
+  updateTimestamp: boolean;
 }
 
 export let DATA: Data = {
@@ -78,10 +78,10 @@ export async function loadData() {
 }
 
 export async function saveData(
-  { updateTimestap }: SaveDataOptions = { updateTimestap: false },
+  { updateTimestamp }: SaveDataOptions = { updateTimestamp: false }
 ) {
   // Save everything
-  if (updateTimestap) {
+  if (updateTimestamp) {
     DATA.createdOn = new Date();
   }
 

@@ -12,7 +12,7 @@ import Emoji from "../components/emoji";
 const homemadeApple = Homemade_Apple({ subsets: ["latin"], weight: "400" });
 
 const SlackStories: StoryFunc = (data, config) => {
-  if (!config.slack) {
+  if (!config.slack || !data.slack?.channels) {
     return [];
   }
 
@@ -28,12 +28,12 @@ const SlackStories: StoryFunc = (data, config) => {
 const EmojiCharts: StoryFunc = (data, config) => {
   const elements: Array<JSX.Element> = [];
 
-  if (!config.slack) {
+  if (!config.slack || !data.slack?.channels) {
     return [];
   }
 
 
-  for (const channelName of config.slack.channels) {
+  for (const channelName of Object.keys(config.slack.channels)) {
     const channelData = data.slack.channels[channelName];
     const favoriteEmoji = getSortedEmoji(channelData.emojis!.byCount);
     const emojiList = EmojiList(favoriteEmoji, data);
@@ -70,11 +70,11 @@ const EmojiCharts: StoryFunc = (data, config) => {
 const BufoCharts: StoryFunc = (data, config) => {
   const elements: Array<JSX.Element> = [];
 
-  if (!config.slack) {
+  if (!config.slack || !data.slack?.channels) {
     return [];
   }
 
-  for (const channelName of config.slack.channels) {
+  for (const channelName of Object.keys(config.slack.channels)) {
     const channelData = data.slack.channels[channelName];
     const favoriteEmoji = getSortedEmoji(channelData.emojis!.byCount, 7, (emoji) => {
       return emoji.startsWith("bufo")
@@ -116,11 +116,11 @@ const BufoCharts: StoryFunc = (data, config) => {
 const ChannelSummaries: StoryFunc = (data, config) => {
   const stories: Story[] = [];
 
-  if (!config.slack) {
+  if (!config.slack || !data.slack?.channels) {
     return [];
   }
 
-  for (const channelName of config.slack.channels) {
+  for (const channelName of Object.keys(config.slack.channels)) {
     const channelData = data.slack.channels[channelName];
 
     if (!channelData) {

@@ -30,14 +30,14 @@ interface SlackOptions {
 export async function fetchSlack(options: SlackOptions = {}) {
   if (!CONFIG.slack) {
     console.log(
-      chalk.bold(`Skipping Slack analysis because it's not configured`),
+      chalk.bold(`Skipping Slack analysis because it's not configured`)
     );
     return;
   }
 
   const channels = await getChannels();
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     await fetchSlackChannel(options, channelName, channels);
   }
 
@@ -49,12 +49,14 @@ export async function fetchSlack(options: SlackOptions = {}) {
   findMessageCountsByDay();
   findDateWithMostMessages();
   calculateTotals();
+  
+  await saveData();
 }
 
 async function fetchSlackChannel(
   options: SlackOptions,
   channelName: string,
-  channels: Channel[],
+  channels: Channel[]
 ) {
   const spinner = ora(`Loading ${channelName}...`).start();
   const channel = findChannelByName(channelName, channels);
@@ -168,47 +170,39 @@ async function getChannels(): Promise<Channel[]> {
 
   const spinner = ora(`Fetching Slack channels`).start();
   const client = getWebClient();
-  const channels: Channel[] = Object.keys(DATA.slack.channels).map(
-    (channelName) => DATA.slack.channels[channelName].channel,
-  );
-  let cursor = "";
+  const channels: Channel[] = [];
 
-  const hasAllChannelsInConfig = () => {
-    return CONFIG.slack?.channels.every((channelName) => {
-      return channels.some((channel) => channel.name === channelName);
-    });
-  };
-
-  while (!hasAllChannelsInConfig()) {
-    // Fetch a list of channels with pagination
-    const channelsResponse = await client.conversations.list({
-      cursor, // Pass the cursor to continue fetching
-      exclude_archived: true, // Exclude archived channels
-      types: "public_channel", // Only fetch public channels
-    });
-
-    if (!channelsResponse.channels || channelsResponse.channels.length === 0) {
-      break;
+  // First, check if we already have cached channel data
+  for (const [channelName, channelId] of Object.entries(
+    CONFIG.slack.channels
+  )) {
+    if (DATA.slack.channels[channelName]?.channel) {
+      channels.push(DATA.slack.channels[channelName].channel);
+      continue;
     }
 
-    spinner.text = `Fetching Slack channels (${channels.length} so far)`;
-    channels.push(...channelsResponse.channels);
+    try {
+      spinner.text = `Fetching channel info for ${channelName}`;
 
-    if (
-      !channelsResponse.response_metadata ||
-      !channelsResponse.response_metadata.next_cursor
-    ) {
-      break;
+      // Fetch channel info directly by ID - much more efficient than listing all channels
+      const channelInfo = await client.conversations.info({
+        channel: channelId,
+      });
+
+      if (channelInfo.ok && channelInfo.channel) {
+        channels.push(channelInfo.channel);
+      } else {
+        spinner.warn(
+          `Failed to fetch channel ${channelName} (${channelId}): ${channelInfo.error}`
+        );
+      }
+    } catch (error) {
+      spinner.warn(
+        `Error fetching channel ${channelName} (${channelId}): ${error}`
+      );
     }
-
-    // Update the cursor for the next page of channels
-    cursor = channelsResponse.response_metadata.next_cursor;
   }
-
-  spinner.succeed(
-    `Fetched ${channels.length} Slack channels (and all configured ones)`,
-  );
-
+  spinner.succeed(`Fetched ${channels.length} configured Slack channels`);
   return channels;
 }
 
@@ -219,7 +213,7 @@ async function fetchAllRepliesForAllThreads(channel: Channel) {
 
   if (!DATA.slack.channels[channel.name]) {
     throw new Error(
-      `No local data found for ${channel.name}. You have to first fetch messages!`,
+      `No local data found for ${channel.name}. You have to first fetch messages!`
     );
   }
 
@@ -230,7 +224,7 @@ async function fetchAllRepliesForAllThreads(channel: Channel) {
   // Filter out messages that are not the start of a thread
   const threadStarters = allMessages.filter((message) => message.thread_ts);
   const spinner = ora(
-    `Fetching Slack replies for ${threadStarters.length} threads in ${channel.name}`,
+    `Fetching Slack replies for ${threadStarters.length} threads in ${channel.name}`
   ).start();
 
   for (const [index, threadStarter] of threadStarters.entries()) {
@@ -256,7 +250,7 @@ async function fetchAllRepliesForAllThreads(channel: Channel) {
         }
 
         threadStarter.replies = (threadStarter.replies || []).concat(
-          repliesResponse.messages,
+          repliesResponse.messages
         );
 
         if (
@@ -270,13 +264,13 @@ async function fetchAllRepliesForAllThreads(channel: Channel) {
       }
     } catch (error) {
       console.error(
-        `Failed to fetch replies for thread ${threadStarter.ts} in channel ${channel.name}: ${error}`,
+        `Failed to fetch replies for thread ${threadStarter.ts} in channel ${channel.name}: ${error}`
       );
     }
   }
 
   spinner.succeed(
-    `Fetched Slack replies for ${threadStarters.length} threads in ${channel.name}`,
+    `Fetched Slack replies for ${threadStarters.length} threads in ${channel.name}`
   );
 }
 
@@ -322,7 +316,7 @@ async function fetchMessages(channel: Channel) {
     }
 
     spinner.succeed(
-      `Fetched ${allMessages.length} Slack messages for ${channel.name}`,
+      `Fetched ${allMessages.length} Slack messages for ${channel.name}`
     );
 
     DATA.slack.channels[channel.name].messages = allMessages;
@@ -354,7 +348,7 @@ function findDateWithMostMessages() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     const spinner = ora(`Finding message counts by day in ${channelName}...`);
     const channel = DATA.slack.channels[channelName];
 
@@ -404,7 +398,7 @@ function findDateWithMostMessages() {
     };
 
     spinner.succeed(
-      `Busiest day in ${channelName}: ${mostMessagesDay} with ${maxMessagesCount} messages`,
+      `Busiest day in ${channelName}: ${mostMessagesDay} with ${maxMessagesCount} messages`
     );
   }
 }
@@ -414,7 +408,7 @@ function findMessageCountsByDay() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     const spinner = ora(`Finding message counts by day in ${channelName}...`);
     const channel = DATA.slack.channels[channelName];
 
@@ -472,7 +466,7 @@ async function findTopPostersInChannels() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     const channel = DATA.slack.channels[channelName];
 
     if (!channel) {
@@ -503,7 +497,7 @@ async function findTopPostersInChannels() {
 
 async function findTopPoster(
   messages: SlackMessageWithReplies[],
-  spinner: Ora,
+  spinner: Ora
 ): Promise<Map<string, number>> {
   const posterCountMap = new Map<string, number>();
 
@@ -511,7 +505,7 @@ async function findTopPoster(
     if (message.user) {
       posterCountMap.set(
         message.user,
-        (posterCountMap.get(message.user) || 0) + 1,
+        (posterCountMap.get(message.user) || 0) + 1
       );
     }
 
@@ -526,7 +520,7 @@ async function findTopPoster(
 
   // Sort the posters by count in descending order
   const sortedPosters = [...posterCountMap.entries()].sort(
-    (a, b) => b[1] - a[1],
+    (a, b) => b[1] - a[1]
   );
   const top10Posters = sortedPosters.slice(0, 10);
 
@@ -538,7 +532,7 @@ async function findTopReacjiInChannels() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     const channel = DATA.slack.channels[channelName];
 
     if (!channel) {
@@ -560,7 +554,7 @@ async function findTopReacjiInChannels() {
 }
 
 async function findReacji(
-  messages: SlackMessageWithReplies[],
+  messages: SlackMessageWithReplies[]
 ): Promise<Record<string, number>> {
   const reacjiCountMap = new Map<string, number>();
 
@@ -570,7 +564,7 @@ async function findReacji(
         if (reaction.name) {
           reacjiCountMap.set(
             reaction.name,
-            (reacjiCountMap.get(reaction.name) || 0) + (reaction.count || 0),
+            (reacjiCountMap.get(reaction.name) || 0) + (reaction.count || 0)
           );
         }
       }
@@ -587,7 +581,7 @@ async function findReacji(
 
   // Sort the reacjis by count in descending order
   const sortedReacji = [...reacjiCountMap.entries()].sort(
-    (a, b) => b[1] - a[1],
+    (a, b) => b[1] - a[1]
   );
 
   return Object.fromEntries(sortedReacji);
@@ -598,7 +592,7 @@ async function findEmojisInChannels() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channelName of CONFIG.slack.channels) {
+  for (const channelName of Object.keys(CONFIG.slack.channels)) {
     const spinner = ora(`Finding emojis in ${channelName}...`).start();
     const channel = DATA.slack.channels[channelName];
 
@@ -610,14 +604,14 @@ async function findEmojisInChannels() {
     const emojis = await findEmojis(channel.messages || []);
 
     spinner.succeed(
-      `Found ${Object.keys(emojis.byCount).length} emojis in ${channelName}`,
+      `Found ${Object.keys(emojis.byCount).length} emojis in ${channelName}`
     );
     DATA.slack.channels[channelName].emojis = emojis;
   }
 }
 
 async function findEmojis(
-  messages: SlackMessageWithReplies[],
+  messages: SlackMessageWithReplies[]
 ): Promise<SlackEmoji> {
   if (!CONFIG.slack) {
     throw new Error(`Slack not configured`);
@@ -675,7 +669,7 @@ async function findEmojis(
         }
 
         for (const [emoji, count] of Object.entries(
-          replyEmoji.byPerson[user],
+          replyEmoji.byPerson[user]
         )) {
           result.byPerson[user][emoji] =
             (result.byPerson[user][emoji] || 0) + count;
@@ -707,7 +701,7 @@ async function fetchEmojiImagesInChannels() {
     throw new Error(`Slack not configured`);
   }
 
-  for (const channel of CONFIG.slack.channels) {
+  for (const channel of Object.keys(CONFIG.slack.channels)) {
     const channelData = DATA.slack.channels[channel];
 
     if (!channelData) {
@@ -724,7 +718,7 @@ async function fetchEmojiImagesInChannels() {
         process.cwd(),
         "public",
         "emoji",
-        `${emoji[0]}.png`,
+        `${emoji[0]}.png`
       );
 
       if (!url || url.startsWith("alias") || fs.existsSync(outPath)) {
@@ -737,7 +731,7 @@ async function fetchEmojiImagesInChannels() {
         await fs.outputFile(outPath, Buffer.from(arrayBuffer));
       } catch (error) {
         console.log(
-          `Failed to download emoji ${emoji[0]} from ${url}: ${error}`,
+          `Failed to download emoji ${emoji[0]} from ${url}: ${error}`
         );
       }
     }
@@ -764,7 +758,7 @@ function calculateTotals() {
 
       return total + messages + replies;
     },
-    0,
+    0
   );
 
   totals.words = Object.values(DATA.slack.channels).reduce((total, channel) => {
@@ -791,14 +785,14 @@ function calculateTotals() {
         }, 0)
       );
     },
-    0,
+    0
   );
 
   totals.emojis = Object.values(DATA.slack.channels).reduce(
     (total, channel) => {
       return total + (Object.keys(channel.emojis?.byCount || {}).length || 0);
     },
-    0,
+    0
   );
 
   DATA.teamTotals = DATA.teamTotals || {};

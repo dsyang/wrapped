@@ -11,7 +11,7 @@ import { CONFIG, loadConfig } from "./config.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const packageJson = fs.readJSONSync(
-  path.resolve(__dirname, "../../package.json"),
+  path.resolve(__dirname, "../../package.json")
 );
 const program = new Command();
 
@@ -21,7 +21,7 @@ const COMMON_DEFAULTS: Partial<CommonOptions> = {
 
 const configOption = new Option(
   "-c, --config <path>",
-  "path to config file",
+  "path to config file"
 ).default(COMMON_DEFAULTS.config);
 
 program.name("wrapped").version(packageJson.version);

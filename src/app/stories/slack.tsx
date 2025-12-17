@@ -32,19 +32,22 @@ const EmojiCharts: StoryFunc = (data, config) => {
     return [];
   }
 
-
   for (const channelName of Object.keys(config.slack.channels)) {
     const channelData = data.slack.channels[channelName];
     const favoriteEmoji = getSortedEmoji(channelData.emojis!.byCount);
     const emojiList = EmojiList(favoriteEmoji, data);
     const uniqueEmojis = new Set();
-    Object.keys(channelData.emojis!.byCount).forEach(emoji => uniqueEmojis.add(emoji));
+    Object.keys(channelData.emojis!.byCount).forEach((emoji) =>
+      uniqueEmojis.add(emoji),
+    );
 
     elements.push(
       <div className="mb-[30px]">
         <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
         <div className="mb-[10px]">{emojiList}</div>
-        <p className="text-sm text-gray-600">We used {uniqueEmojis.size} unique emojis in 2025</p>
+        <p className="text-sm text-gray-600">
+          We used {uniqueEmojis.size} unique emojis in 2024
+        </p>
       </div>,
     );
   }
@@ -76,21 +79,27 @@ const BufoCharts: StoryFunc = (data, config) => {
 
   for (const channelName of Object.keys(config.slack.channels)) {
     const channelData = data.slack.channels[channelName];
-    const favoriteEmoji = getSortedEmoji(channelData.emojis!.byCount, 7, (emoji) => {
-      return emoji.startsWith("bufo")
-    });
+    const favoriteEmoji = getSortedEmoji(
+      channelData.emojis!.byCount,
+      7,
+      (emoji) => {
+        return emoji.startsWith("bufo");
+      },
+    );
     const emojiList = EmojiList(favoriteEmoji, data);
 
     // Count unique bufo emojis
-    const uniqueBufoCount = Object.keys(channelData.emojis!.byCount).filter(emoji => 
-      emoji.startsWith("bufo")
+    const uniqueBufoCount = Object.keys(channelData.emojis!.byCount).filter(
+      (emoji) => emoji.startsWith("bufo"),
     ).length;
 
     elements.push(
       <div className="mb-[30px]">
         <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
         <div className="mb-[10px]">{emojiList}</div>
-        <p className="text-sm text-gray-600">We used {uniqueBufoCount} unique bufos in 2025</p>
+        <p className="text-sm text-gray-600">
+          We used {uniqueBufoCount} unique bufos in 2024
+        </p>
       </div>,
     );
   }
@@ -101,9 +110,7 @@ const BufoCharts: StoryFunc = (data, config) => {
         <div className="text-black text-center w-full h-full bg-cover bg-notion-paper">
           <RandomEmojiBackground />
           <div className="w-full h-full p-8 pt-20">
-            <p className={`${homemadeApple.className} text-6xl`}>
-              Bufo Charts
-            </p>
+            <p className={`${homemadeApple.className} text-6xl`}>Bufo Charts</p>
             <p className="mb-[20px] text-2xl">{config.periodName}</p>
             {elements}
           </div>
@@ -148,7 +155,12 @@ const ChannelSummaries: StoryFunc = (data, config) => {
     let botsContentsMaybe = <></>;
 
     if (Object.keys(topPostersOnlyBots).length > 0) {
-      botsContentsMaybe = <p className="mt-[30px]">Our top 3 busiest bots were {recordToNameAndNumber(topPostersOnlyBots, "messages", 3)}.</p>;
+      botsContentsMaybe = (
+        <p className="mt-[30px]">
+          Our top 3 busiest bots were{" "}
+          {recordToNameAndNumber(topPostersOnlyBots, "messages", 3)}.
+        </p>
+      );
     }
 
     stories.push(
@@ -248,11 +260,17 @@ function getWeekdayWithMostMessages(input: Record<string, number>): string {
   return sorted[0].day;
 }
 
-function getSortedEmoji(input: Record<string, number>, length: number = 7, filter: (emoji: string) => boolean = () => true) {
-  const array = Object.entries(input).map(([emoji, count]) => ({
-    emoji,
-    count,
-  })).filter(({ emoji }) => filter(emoji));
+function getSortedEmoji(
+  input: Record<string, number>,
+  length: number = 7,
+  filter: (emoji: string) => boolean = () => true,
+) {
+  const array = Object.entries(input)
+    .map(([emoji, count]) => ({
+      emoji,
+      count,
+    }))
+    .filter(({ emoji }) => filter(emoji));
   const sorted = array.sort((a, b) => b.count - a.count);
   const top = sorted.slice(0, length);
 

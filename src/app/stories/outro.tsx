@@ -17,7 +17,7 @@ const OutroStory: StoryFunc = (data, config) => {
             <p className={`${homemadeApple.className} font-bold text-7xl`}>
               wrapped
             </p>
-            <p>{`for ${config.teamName}`}</p>
+            <p className="mt-6">{`for ${config.teamName}`}</p>
           </div>
           <Image
             className="mt-5"

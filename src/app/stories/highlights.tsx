@@ -42,11 +42,14 @@ const HighlightStories: StoryFunc = (data, config) => {
 
   for (const highlight of config.highlights || []) {
     const backgroundImage = `url(${highlight.photo})`;
-    const captionPosition = highlight.captionPosition === "top" ? "top-10" : "bottom-10";
+    const captionPosition =
+      highlight.captionPosition === "top" ? "top-10" : "bottom-10";
 
-    const caption = highlight.caption ? <div className="bg-black text-white w-1/2 mx-auto p-1 pt-1.5 text-xs text-center rounded-md select-none">
-    {highlight.caption}
-  </div> : null;
+    const caption = highlight.caption ? (
+      <div className="bg-black text-white w-1/2 mx-auto p-1 pt-1.5 text-xs text-center rounded-md select-none">
+        {highlight.caption}
+      </div>
+    ) : null;
 
     stories.push({
       content: (props) => (
@@ -55,9 +58,7 @@ const HighlightStories: StoryFunc = (data, config) => {
             style={{ backgroundImage }}
             className="ken-burns-bg bg-cover w-full h-full flex place-items-center justify-center content-center"
           />
-          <div className={`w-full absolute ${captionPosition}`}>
-            {caption}
-          </div>
+          <div className={`w-full absolute ${captionPosition}`}>{caption}</div>
         </div>
       ),
     });

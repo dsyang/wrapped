@@ -4,7 +4,6 @@ import { VT323 } from "next/font/google";
 import { StoryFunc } from "../../interfaces";
 const vt323 = VT323({ subsets: ["latin"], weight: "400" });
 
-
 const GitStories: StoryFunc = (data, config) => {
   const stories: Story[] = [];
   const folders = Object.keys(data.git?.folders || {});

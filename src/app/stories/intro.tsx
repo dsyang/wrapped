@@ -15,10 +15,10 @@ const CoverStory: StoryFunc = (data, config) => {
           <div className="w-full text-center text-black">
             <p>Welcome to</p>
             <p className="">~ {config.periodName} ~</p>
-            <p className={`${homemadeApple.className} font-bold text-4xl`}>
+            <p className={`${homemadeApple.className} font-bold text-7xl`}>
               wrapped
             </p>
-            <p>{`for ${config.teamName}`}</p>
+            <p className="mt-6">{`for ${config.teamName}`}</p>
           </div>
           <Image
             className="mt-5"

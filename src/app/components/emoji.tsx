@@ -9,7 +9,7 @@ export interface EmojiProps {
 }
 
 const Emoji: React.FC<EmojiProps> = ({ name, data }: EmojiProps) => {
-  const extractedCustomEmoji = extractAlias(name, data)
+  const extractedCustomEmoji = extractAlias(name, data);
 
   // Custom Emoji
   if (extractedCustomEmoji) {
@@ -23,7 +23,7 @@ const Emoji: React.FC<EmojiProps> = ({ name, data }: EmojiProps) => {
       />
     );
   }
-  const standardEmoji = getStandardEmoji(name)
+  const standardEmoji = getStandardEmoji(name);
 
   if (standardEmoji) {
     return <span>{standardEmoji}</span>;
@@ -46,18 +46,18 @@ function extractFilenameFromURL(url: string): string | null {
 }
 
 /**
- * If the emoji is alias:*, return the name of the emoji  
- * 
- * @param name 
+ * If the emoji is alias:*, return the name of the emoji
+ *
+ * @param name
  */
 function extractAlias(name: string, data: DataLight) {
-  const result = data.slack.emoji[name]
+  const result = data.slack.emoji[name];
 
-  if (result && result.startsWith('alias:')) {
-    return extractAlias(result.replace('alias:', ''), data)
+  if (result && result.startsWith("alias:")) {
+    return extractAlias(result.replace("alias:", ""), data);
   }
 
-  return result
+  return result;
 }
 
 export default Emoji;

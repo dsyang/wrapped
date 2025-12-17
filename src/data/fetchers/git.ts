@@ -16,10 +16,12 @@ export async function fetchGit() {
 
 async function fetchRepoData() {
   if (!CONFIG.git) {
-    console.log(chalk.bold(`Skipping git analysis because it's not configured`));
+    console.log(
+      chalk.bold(`Skipping git analysis because it's not configured`),
+    );
     return;
   }
-  
+
   const { commitAtFrom, commitAtTo } = await getCommitsAtTheEnds();
 
   DATA.git = DATA.git || {};
@@ -124,7 +126,7 @@ async function getActivityStats() {
     cwd: CONFIG.git?.repoPath,
   });
   const [count, hour] = hourResult.trim().split(/\s+/);
-  
+
   // Most active day
   const dayCmd = `git log ${authors} --format="%ad" --date=format:"%A" | sort | uniq -c | sort -rn | head -n 1`;
   const { stdout: dayResult } = await execPromise(dayCmd, {
@@ -133,7 +135,7 @@ async function getActivityStats() {
   const [dayCount, day] = dayResult.trim().split(/\s+/);
 
   spinner.succeed(`Found activity patterns`);
-  
+
   return {
     mostActiveHour: {
       hour: parseInt(hour),
@@ -149,7 +151,7 @@ async function getActivityStats() {
 async function getCommitStats() {
   const spinner = ora(`Analyzing commit patterns`).start();
   const authors = getAuthorFilter(CONFIG.people);
-  
+
   // Average commit message length
   const msgLengthCmd = `git log ${authors} --pretty=format:"%s" | awk '{ sum += length; n++ } END { print sum/n }'`;
   const { stdout: avgLength } = await execPromise(msgLengthCmd, {
@@ -158,7 +160,7 @@ async function getCommitStats() {
 
   const result = {
     averageMessageLength: Math.round(parseFloat(avgLength)),
-    ...await getCoAuthors(spinner),
+    ...(await getCoAuthors(spinner)),
   };
 
   spinner.succeed(`Analyzed commit patterns`);
@@ -170,10 +172,10 @@ async function getCoAuthors(spinner: Ora) {
   const getPairName = (name1: string, name2: string) => {
     const [a, b] = [name1, name2].sort();
     return `${a} and ${b}`;
-  }
+  };
 
   const coAuthorPairs: Record<string, number> = {};
-  let coAuthoredCount = 0
+  let coAuthoredCount = 0;
 
   for (const person of CONFIG.people) {
     spinner.text = `Analyzing co-authors for ${person.name}`;
@@ -191,7 +193,7 @@ async function getCoAuthors(spinner: Ora) {
       cwd: CONFIG.git?.repoPath,
     });
 
-    const lines = stdout.trim().split('\n');
+    const lines = stdout.trim().split("\n");
 
     for (const line of lines) {
       const coAuthor = line.trim();
@@ -214,7 +216,7 @@ async function getCoAuthors(spinner: Ora) {
 async function getFileStats(folder: string) {
   const spinner = ora(`Analyzing file patterns in ${folder}`).start();
   const authors = getAuthorFilter(CONFIG.people);
-  
+
   // Most modified file types
   const fileTypesCmd = `git log ${authors} --pretty=format: --name-only -- ${folder} | grep -v '^$' | awk -F. '{print $NF}' | sort | uniq -c | sort -rn | head -5`;
   const { stdout: fileTypes } = await execPromise(fileTypesCmd, {
@@ -224,8 +226,8 @@ async function getFileStats(folder: string) {
   // Parse file types into structured data
   const topFileTypes = fileTypes
     .trim()
-    .split('\n')
-    .map(line => {
+    .split("\n")
+    .map((line) => {
       const [count, ext] = line.trim().split(/\s+/);
       return { extension: ext, count: parseInt(count) };
     });
@@ -239,9 +241,9 @@ async function getFileStats(folder: string) {
 
 function getAuthorFilter(people: Person[]) {
   const filter = CONFIG.people
-    .filter(p => p.name)
-    .map(p => `--author=".*${p.name}.*"`) // Use regex pattern to match name anywhere in author field
-    .join(' ');
+    .filter((p) => p.name)
+    .map((p) => `--author=".*${p.name}.*"`) // Use regex pattern to match name anywhere in author field
+    .join(" ");
 
   return filter;
 }

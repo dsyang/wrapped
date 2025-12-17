@@ -23,7 +23,23 @@ import { capitalize } from "../../helpers/capitalize.js";
 import { isCurrent } from "../../helpers/is-current.js";
 import { calculateImagesInString } from "../../helpers/calculate-images.js";
 
-export async function fetchGitHub(): Promise<void> {
+export async function resetGitHubCache(): Promise<void> {
+  console.log("Resetting GitHub cache for all people...");
+
+  for (const person of CONFIG.people) {
+    if (DATA.github[person.name]) {
+      DATA.github[person.name].pullsAllFetched = false;
+      console.log(`Reset cache for ${person.name}`);
+    }
+  }
+
+  await saveData();
+  console.log("GitHub cache reset complete");
+}
+
+export async function fetchGitHub({
+  refreshPRs = false,
+}: { refreshPRs?: boolean } = {}): Promise<void> {
   if (!CONFIG.github) {
     console.log(
       chalk.bold("Skipping GitHub analysis because it's not configured"),
@@ -31,23 +47,29 @@ export async function fetchGitHub(): Promise<void> {
     return;
   }
 
-  const isDataCurrent = isCurrent(CONFIG, DATA.createdOn);
+  if (refreshPRs) {
+    await resetGitHubCache();
+    return;
+  }
+
+  const dataCurrentStatus = isCurrent(CONFIG, DATA.createdOn);
 
   for (const person of CONFIG.people) {
     if (!person.github) {
       console.log(`Skipping ${person.name} as no GitHub username was provided`);
     } else if (
       DATA.github[person.name] &&
-      DATA.github[person.name].pullsAllFetched &&
-      isDataCurrent
+      DATA.github[person.name].pullsAllFetched
     ) {
       console.log(
-        `Skipping ${person.name} as all pull requests have already been fetched`,
+        `Skipping ${person.name} as all pull requests have already been fetched${
+          dataCurrentStatus ? ` (${dataCurrentStatus})` : ""
+        }`,
       );
     } else {
-      await fetchAuthoredPullRequests(person);
       await fetchCommentedPullRequests(person);
       await fetchReviewedPullRequests(person);
+      await fetchAuthoredPullRequests(person);
     }
   }
 
@@ -127,11 +149,28 @@ async function fetchAuthoredPullRequests(person: Person) {
     isMerged: true,
   });
 
-  for (const [index, pull] of pulls.entries()) {
-    spinner.text = `Fetching details for pull request ${pull.number} ${
-      index + 1
-    }/${pulls.length}`;
-    if (!DATA.github[person.name].pulls[pull.number]) {
+  const cachedPulls = pulls.filter(
+    (pull) => DATA.github[person.name].pulls[pull.number],
+  );
+  const newPulls = pulls.filter(
+    (pull) => !DATA.github[person.name].pulls[pull.number],
+  );
+
+  if (cachedPulls.length > 0) {
+    spinner.succeed(
+      `Found ${cachedPulls.length} pull requests in cache for ${person.name}`,
+    );
+  }
+
+  if (newPulls.length > 0) {
+    spinner.start(
+      `Fetching details for ${newPulls.length} new pull requests from ${person.name}`,
+    );
+
+    for (const [index, pull] of newPulls.entries()) {
+      spinner.text = `Fetching details for pull request ${pull.number} ${
+        index + 1
+      }/${newPulls.length}`;
       const details = await fetchPullRequest({
         id: pull.number,
       });
@@ -152,12 +191,21 @@ async function fetchAuthoredPullRequests(person: Person) {
 
       await saveData();
     }
+
+    spinner.succeed(
+      `Fetched ${newPulls.length} new pull requests for ${person.name}`,
+    );
+  } else if (pulls.length > 0) {
+    spinner.succeed(
+      `All ${pulls.length} pull requests for ${person.name} were already cached`,
+    );
+  } else {
+    spinner.succeed(`No pull requests found for ${person.name}`);
   }
 
   DATA.github[person.name].pullsAllFetched = true;
 
   await saveData();
-  spinner.succeed(`Fetched ${pulls.length} pull requests for ${person.name}`);
 }
 
 function calculateTotals() {
@@ -228,20 +276,34 @@ async function getOctokit() {
   return (_octokit = new ThrottledOctokit({
     auth: CONFIG.github.token,
     throttle: {
-      onRateLimit: (retryAfter, options) => {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
         console.log(
-          `Request quota exhausted for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds!`,
+          `Request quota exhausted for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds! (attempt ${retryCount}/5)`,
         );
 
-        return true;
+        // Retry up to 5 times
+        return retryCount < 5;
       },
       onSecondaryRateLimit(retryAfter, options, octokit, retryCount) {
         console.log(
-          `Secondary request quota exhausted for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds!`,
+          `Secondary request quota exhausted for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds! (attempt ${retryCount}/3)`,
         );
 
-        return true;
+        // Retry up to 3 times for secondary rate limits
+        return retryCount < 3;
       },
+      onAbuseLimit: (retryAfter, options, octokit, retryCount) => {
+        console.log(
+          `Abuse detection triggered for request ${options.method} ${options.url}. Retrying after ${retryAfter} seconds! (attempt ${retryCount}/2)`,
+        );
+
+        // Retry up to 2 times for abuse detection
+        return retryCount < 2;
+      },
+    },
+    request: {
+      retries: 3,
+      retryAfter: 1,
     },
   }));
 }

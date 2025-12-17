@@ -78,7 +78,7 @@ export async function loadData() {
 }
 
 export async function saveData(
-  { updateTimestamp }: SaveDataOptions = { updateTimestamp: false }
+  { updateTimestamp }: SaveDataOptions = { updateTimestamp: false },
 ) {
   // Save everything
   if (updateTimestamp) {

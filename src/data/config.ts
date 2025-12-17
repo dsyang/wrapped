@@ -118,15 +118,15 @@ export interface Person {
 
 export interface Highlight {
   // If the photo is placed in /public/photos/felix.jpg, you'd enter
-    // "/photos/felix.jpg". You can also specify a URL.
-    //
-    // Example: "/photos/felix_highlight.jpg"
-    photo: string;
-    // Example: "I got to climb Mt Everest this year!"
-    caption?: string;
-    // If you want to position the caption at the top or bottom of the
-    // image. "bottom" by default.
-    captionPosition?: "top" | "bottom";
+  // "/photos/felix.jpg". You can also specify a URL.
+  //
+  // Example: "/photos/felix_highlight.jpg"
+  photo: string;
+  // Example: "I got to climb Mt Everest this year!"
+  caption?: string;
+  // If you want to position the caption at the top or bottom of the
+  // image. "bottom" by default.
+  captionPosition?: "top" | "bottom";
 }
 
 export let CONFIG: Config = {} as any;

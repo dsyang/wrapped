@@ -12,6 +12,7 @@ export interface CreateOptions {
   skipGitHub: boolean;
   skipSlack: boolean;
   skipFetch: boolean;
+  refreshPRs: boolean;
 }
 
 export async function create(options: CreateOptions) {
@@ -40,7 +41,7 @@ Thank you.
   }
 
   if (!options.skipGitHub) {
-    await fetchGitHub();
+    await fetchGitHub({ refreshPRs: options.refreshPRs });
   }
 
   if (!options.skipGit) {

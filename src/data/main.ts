@@ -11,7 +11,7 @@ import { CONFIG, loadConfig } from "./config.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const packageJson = fs.readJSONSync(
-  path.resolve(__dirname, "../../package.json")
+  path.resolve(__dirname, "../../package.json"),
 );
 const program = new Command();
 
@@ -21,7 +21,7 @@ const COMMON_DEFAULTS: Partial<CommonOptions> = {
 
 const configOption = new Option(
   "-c, --config <path>",
-  "path to config file"
+  "path to config file",
 ).default(COMMON_DEFAULTS.config);
 
 program.name("wrapped").version(packageJson.version);
@@ -34,6 +34,7 @@ program
   .option("--skip-github", "Skip fetching GitHub data")
   .option("--skip-slack", "Skip fetching Slack data")
   .option("--skip-fetch", "Skip fetching data if possible")
+  .option("--refresh-prs", "Force refresh all GitHub PR data (ignore cache)")
   .action(async (options) => {
     await loadConfig(options.config);
     await loadData();
@@ -42,6 +43,7 @@ program
       skipGitHub: options.skipGithub,
       skipSlack: options.skipSlack,
       skipFetch: options.skipFetch,
+      refreshPRs: options.refreshPrs,
     });
   });
 

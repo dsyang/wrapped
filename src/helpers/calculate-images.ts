@@ -8,7 +8,7 @@ export function calculateImagesInString(input: string = "") {
   // GitHub markdown images can be in two formats:
   // 1. HTML: <img src="...">
   // 2. Markdown: ![alt text](url)
-  
+
   // Match HTML img tags
   const htmlRegex = /<img[^>]+src="([^">]+)"/g;
   const htmlMatches = input.match(htmlRegex) || [];

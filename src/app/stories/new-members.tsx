@@ -52,7 +52,7 @@ const NewMembersStory: StoryFunc = (data, config) => {
               We&apos;re so happy you&apos;re here!
             </p>
             <div className="mt-5 relative w-full overflow-hidden">
-              <div className="flex flex-row gap-5 animate-[scroll_10s_linear_infinite] whitespace-nowrap">
+              <div className="flex flex-row gap-5 animate-[scroll_12s_linear_infinite] whitespace-nowrap">
                 {newPeopleImages}
                 {newPeopleImages}
               </div>
@@ -62,7 +62,7 @@ const NewMembersStory: StoryFunc = (data, config) => {
                     transform: translateX(0);
                   }
                   100% {
-                    transform: translateX(-50%);
+                    transform: translateX(-150%);
                   }
                 }
               `}</style>

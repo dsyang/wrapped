@@ -26,6 +26,8 @@ export interface Config {
   projects?: Array<string>;
   // Any highlights you're proud of?
   highlights?: Array<Highlight>;
+  // Life moments we celebrated this year (babies, birthdays, weddings, etc.)
+  lifeMoments?: Array<LifeMoment>;
 }
 
 export interface GitConfig {
@@ -123,6 +125,26 @@ export interface Highlight {
   // Example: "/photos/felix_highlight.jpg"
   photo: string;
   // Example: "I got to climb Mt Everest this year!"
+  caption?: string;
+  // If you want to position the caption at the top or bottom of the
+  // image. "bottom" by default.
+  captionPosition?: "top" | "bottom";
+}
+
+export interface LifeMoment {
+  // If the photo is placed in /public/photos/baby.jpg, you'd enter
+  // "/photos/baby.jpg". You can also specify a URL.
+  //
+  // Example: "/photos/baby.jpg"
+  photo: string;
+  // The name of the person this moment is about
+  // Example: "Sarah"
+  name: string;
+  // What type of moment is this?
+  // Example: "baby" | "birthday" | "wedding" | "promotion" | "other"
+  type: "baby" | "birthday" | "wedding" | "promotion" | "anniversary" | "other";
+  // Optional caption to display
+  // Example: "Welcome baby Emma!"
   caption?: string;
   // If you want to position the caption at the top or bottom of the
   // image. "bottom" by default.

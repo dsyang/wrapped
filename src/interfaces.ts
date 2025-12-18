@@ -132,10 +132,7 @@ export interface GitFolderData {
 
 export interface GitHubTestType {
   manual: boolean;
-  unit: boolean;
-  client: boolean;
-  integration: boolean;
-  browser: boolean;
+  automated: boolean;
 }
 
 export interface GitHubTotals {
@@ -155,9 +152,7 @@ export interface GitHubTotals {
   wordsPerPullAvg: number;
   imagesPerPullAvg: number;
   pullsTestedManually: Array<number>;
-  pullsTestedClient: Array<number>;
-  pullsTestedBrowser: Array<number>;
-  pullsTestedIntegration: Array<number>;
+  pullsTestedAutomated: Array<number>;
 }
 
 export interface GitHubTeamTotals {
@@ -178,9 +173,7 @@ export interface GitHubTeamTotals {
   deletionsPerPullMed: number;
   changedFilesPerPullMed: number;
   pullsTestedManually: number;
-  pullsTestedClient: number;
-  pullsTestedBrowser: number;
-  pullsTestedIntegration: number;
+  pullsTestedAutomated: number;
 }
 
 export interface Leaders {

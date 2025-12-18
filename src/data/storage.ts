@@ -154,8 +154,6 @@ export function getTotals(): GitHubTotals {
     changedFilesPerPullAvg: 0,
     wordsPerPullAvg: 0,
     pullsTestedManually: [],
-    pullsTestedClient: [],
-    pullsTestedBrowser: [],
-    pullsTestedIntegration: [],
+    pullsTestedAutomated: [],
   };
 }

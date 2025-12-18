@@ -260,15 +260,8 @@ const TopTester: StoryFunc = (data, config) => {
 
   if (!leaders || !totals) return [];
 
-  const {
-    pullsTestedManually,
-    pullsTestedBrowser,
-    pullsTestedClient,
-    pullsTestedIntegration,
-  } = totals;
-  const browserLeader = joined(leaders.pullsTestedBrowser.names);
-  const clientLeader = joined(leaders.pullsTestedClient.names);
-  const integrationLeader = joined(leaders.pullsTestedIntegration.names);
+  const { pullsTestedManually, pullsTestedAutomated } = totals;
+  const automatedLeader = joined(leaders.pullsTestedAutomated.names);
   const manualLeader = joined(leaders.pullsTestedManually.names);
 
   return [
@@ -280,9 +273,7 @@ const TopTester: StoryFunc = (data, config) => {
           <p className={`${rubikGlitch.className} text-8xl`}>TESTNIG</p>
           <p className="mt-[30px]">
             As a team, {config.teamName} tested {pullsTestedManually} PRs
-            manually, {pullsTestedBrowser} with browser tests,{" "}
-            {pullsTestedClient} with client tests, and {pullsTestedIntegration}{" "}
-            with integration tests.
+            manually and {pullsTestedAutomated} with automated tests.
           </p>
           <p className="mt-[150px]">
             Here are your leaders for testing the most PRs using each category:
@@ -293,16 +284,8 @@ const TopTester: StoryFunc = (data, config) => {
               {manualLeader}
             </p>
             <p>
-              <span className="font-bold uppercase">Browser</span>:{" "}
-              {browserLeader}
-            </p>
-            <p>
-              <span className="font-bold uppercase">Client</span>:{" "}
-              {clientLeader}
-            </p>
-            <p>
-              <span className="font-bold uppercase">Integration</span>:{" "}
-              {integrationLeader}
+              <span className="font-bold uppercase">Automated Tests</span>:{" "}
+              {automatedLeader}
             </p>
           </div>
         </div>

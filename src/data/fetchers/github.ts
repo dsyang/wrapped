@@ -233,10 +233,8 @@ function calculateTotals() {
       totals.imagesInPullBodies.push(calculateImagesInString(pull.body));
 
       const tests = getTestTypes(pull);
-      if (tests.client) totals.pullsTestedClient.push(pull.number);
-      if (tests.browser) totals.pullsTestedBrowser.push(pull.number);
       if (tests.manual) totals.pullsTestedManually.push(pull.number);
-      if (tests.integration) totals.pullsTestedIntegration.push(pull.number);
+      if (tests.automated) totals.pullsTestedAutomated.push(pull.number);
     }
 
     for (const pull of pullsReviewed) {
@@ -391,9 +389,7 @@ const PRETTY_TITLES: Record<
   deletionsPerPullMed: "- lines per PR (med)",
   changedFilesPerPullMed: "Files changed per PR (med)",
   pullsTestedManually: "PRs tested manually",
-  pullsTestedClient: "PRs tested on client",
-  pullsTestedBrowser: "PRs tested in browser",
-  pullsTestedIntegration: "PRs tested in integration",
+  pullsTestedAutomated: "PRs tested automatically",
 };
 
 async function calculateLeaders(): Promise<GitHubLeaders> {
@@ -414,9 +410,7 @@ async function calculateLeaders(): Promise<GitHubLeaders> {
     deletionsPerPullAvg: { names: [], value: 0 },
     changedFilesPerPullAvg: { names: [], value: 0 },
     pullsTestedManually: { names: [], value: 0 },
-    pullsTestedClient: { names: [], value: 0 },
-    pullsTestedBrowser: { names: [], value: 0 },
-    pullsTestedIntegration: { names: [], value: 0 },
+    pullsTestedAutomated: { names: [], value: 0 },
   };
 
   for (const person of CONFIG.people) {
@@ -473,9 +467,7 @@ async function calculateTeamTotals(): Promise<GitHubTeamTotals> {
     changedFilesPerPullAvg: 0,
     changedFilesPerPullMed: 0,
     pullsTestedManually: 0,
-    pullsTestedClient: 0,
-    pullsTestedBrowser: 0,
-    pullsTestedIntegration: 0,
+    pullsTestedAutomated: 0,
   };
 
   const additionsPerPulls: Array<number> = [];
@@ -508,10 +500,7 @@ async function calculateTeamTotals(): Promise<GitHubTeamTotals> {
     });
 
     teamTotals.pullsTestedManually += personTotals.pullsTestedManually.length;
-    teamTotals.pullsTestedClient += personTotals.pullsTestedClient.length;
-    teamTotals.pullsTestedBrowser += personTotals.pullsTestedBrowser.length;
-    teamTotals.pullsTestedIntegration +=
-      personTotals.pullsTestedIntegration.length;
+    teamTotals.pullsTestedAutomated += personTotals.pullsTestedAutomated.length;
   }
 
   teamTotals.pulls = teamPulls.size;
@@ -562,20 +551,23 @@ function getGitHubDate(date: Date) {
 }
 
 function getTestTypes({ body }: PullRequest): GitHubTestType {
-  // [ ] Unit test\r\n- [ ] Client test\r\n- [ ] Integration test\r\n-
-  // [ ] Browser (end-to-end) test\r\n- [x] Manual test
+  // Look for automated tests or manual test checkboxes
   const result: GitHubTestType = {
-    client: false,
     manual: false,
-    integration: false,
-    browser: false,
-    unit: false,
+    automated: false,
   };
 
-  for (const key of Object.keys(result) as Array<keyof GitHubTestType>) {
-    if (body.includes(`[x] ${capitalize(key)}`)) {
-      result[key] = true;
-    }
+  // Check for manual test
+  if (body.includes("[x] Manual test") || body.includes("[X] Manual test")) {
+    result.manual = true;
+  }
+
+  // Check for automated tests (could be various forms)
+  if (
+    body.includes("[x] Automated test") ||
+    body.includes("[X] Automated test")
+  ) {
+    result.automated = true;
   }
 
   return result;

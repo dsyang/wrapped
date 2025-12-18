@@ -54,7 +54,7 @@ const LifeMomentsStory: StoryFunc = (data, config) => {
           )}
         </div>
         <p className="text-lg text-gray-600 mt-auto mb-20">
-          {lifeMoments.length} special moment{lifeMoments.length !== 1 ? "s" : ""} in {config.periodName}
+          Special moments in {config.periodName}
         </p>
       </div>
     ),

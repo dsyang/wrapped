@@ -44,7 +44,7 @@ const EmojiCharts: StoryFunc = (data, config) => {
       <div className="mb-[30px]">
         <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
         <div className="mb-[10px]">{emojiList}</div>
-        <p className="text-sm text-gray-600">We used {uniqueEmojis.size} unique emojis in 2024</p>
+        <p className="text-sm text-gray-600">We used {uniqueEmojis.size} unique emojis in 2025</p>
       </div>,
     );
   }
@@ -90,7 +90,7 @@ const BufoCharts: StoryFunc = (data, config) => {
       <div className="mb-[30px]">
         <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
         <div className="mb-[10px]">{emojiList}</div>
-        <p className="text-sm text-gray-600">We used {uniqueBufoCount} unique bufos in 2024</p>
+        <p className="text-sm text-gray-600">We used {uniqueBufoCount} unique bufos in 2025</p>
       </div>,
     );
   }

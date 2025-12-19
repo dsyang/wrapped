@@ -82,6 +82,13 @@ export interface SlackConfig {
   ignoreEmoji: Array<string>;
   // Maybe you have bots posting a lot and you want them to be excluded from the leaderboard.
   ignoreBots: Array<string>;
+  // Story layout options
+  storyOptions?: {
+    // Control whether to show one combined story per channel or separate stories by type
+    // "always" = always use one story per channel
+    // "auto" = use threshold-based logic (default)
+    oneStoryPerChannel?: "always" | "auto";
+  };
 }
 
 export interface Person {
@@ -199,6 +206,7 @@ export async function loadConfig(configPath: string) {
           channels: input.slack.channels || [],
           ignoreEmoji: input.slack.ignoreEmoji || [],
           ignoreBots: input.slack.ignoreBots || [],
+          storyOptions: input.slack.storyOptions || {},
         }
       : undefined,
   });

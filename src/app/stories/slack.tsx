@@ -16,15 +16,158 @@ const SlackStories: StoryFunc = (data, config) => {
     return [];
   }
 
-  const stories: Story[] = [
-    ...EmojiCharts(data, config),
-    ...BufoCharts(data, config),
-    ...ChannelSummaries(data, config),
-  ];
+  const channelCount = Object.keys(config.slack.channels).length;
+  const oneStoryPerChannelOption =
+    config.slack.storyOptions?.oneStoryPerChannel || "auto";
+
+  // Determine layout based on configuration
+  const useNewLayout =
+    oneStoryPerChannelOption === "always" ||
+    (oneStoryPerChannelOption === "auto" && channelCount > 3);
+
+  if (useNewLayout) {
+    // New combined layout - one story per channel
+    const stories: Story[] = [...ChannelStories(data, config)];
+    return stories;
+  } else {
+    // Original separate layout - stories grouped by type
+    const stories: Story[] = [
+      ...EmojiCharts(data, config),
+      ...BufoCharts(data, config),
+      ...ChannelSummaries(data, config),
+    ];
+    return stories;
+  }
+};
+
+// New combined layout - one comprehensive story per channel
+const ChannelStories: StoryFunc = (data, config) => {
+  const stories: Story[] = [];
+
+  if (!config.slack || !data.slack?.channels) {
+    return [];
+  }
+
+  for (const channelName of Object.keys(config.slack.channels)) {
+    const channelData = data.slack.channels[channelName];
+
+    if (!channelData) {
+      console.log(`No data for channel ${channelName}`);
+      continue;
+    }
+
+    // Emoji data
+    const favoriteEmoji = getSortedEmoji(channelData.emojis!.byCount);
+    const emojiList = EmojiList(favoriteEmoji, data);
+    const uniqueEmojis = new Set();
+    Object.keys(channelData.emojis!.byCount).forEach((emoji) =>
+      uniqueEmojis.add(emoji),
+    );
+
+    // Bufo data
+    const favoriteBufos = getSortedEmoji(
+      channelData.emojis!.byCount,
+      7,
+      (emoji) => {
+        return emoji.startsWith("bufo");
+      },
+    );
+    const bufoList = EmojiList(favoriteBufos, data);
+    const uniqueBufoCount = Object.keys(channelData.emojis!.byCount).filter(
+      (emoji) => emoji.startsWith("bufo"),
+    ).length;
+
+    // Reaction data
+    const favoriteReacji = getSortedEmoji(channelData.reacji!, 6);
+    const reacjiList = EmojiList(favoriteReacji, data);
+
+    // Message stats
+    const topPostersWithoutBots: Record<string, number> = {};
+    const topPostersOnlyBots: Record<string, number> = {};
+
+    // Filter out bots
+    for (const [name, count] of Object.entries(channelData.topPosters!)) {
+      if (!(config.slack.ignoreBots || []).includes(name)) {
+        topPostersWithoutBots[name] = count;
+      } else {
+        topPostersOnlyBots[name] = count;
+      }
+    }
+
+    let botsContentsMaybe = <></>;
+
+    if (Object.keys(topPostersOnlyBots).length > 0) {
+      botsContentsMaybe = (
+        <p className="mt-[20px]">
+          Our top 3 busiest bots were{" "}
+          {recordToNameAndNumber(topPostersOnlyBots, "messages", 3)}.
+        </p>
+      );
+    }
+
+    stories.push({
+      content: (props) => (
+        <div className="text-black text-center w-full h-full bg-cover bg-notion-paper">
+          <RandomEmojiBackground />
+          <div className="w-full h-full p-6 pt-16 overflow-y-auto">
+            <p className={`${homemadeApple.className} text-4xl mb-10`}>
+              #{channelName}
+            </p>
+
+            {/* Message Stats */}
+            <div className="mb-10">
+              <p className="text-sm">
+                In {config.periodName},{" "}
+                <span className="font-bold">
+                  {n(channelData.messageCount)} messages
+                </span>{" "}
+                were written. The top 3 chatterbugs were{" "}
+                {recordToNameAndNumber(topPostersWithoutBots, "messages", 3)}.
+              </p>
+              {botsContentsMaybe}
+            </div>
+
+            {/* Emojis Section */}
+            <div className="mb-6">
+              <p className={`${homemadeApple.className} text-2xl mb-2`}>
+                Emojis
+              </p>
+              <div className="mb-2">{emojiList}</div>
+              <p className="text-xs text-gray-600">
+                {uniqueEmojis.size} unique emojis used
+              </p>
+            </div>
+
+            {/* Bufos Section */}
+            {uniqueBufoCount > 0 && (
+              <div className="mb-6">
+                <p className={`${homemadeApple.className} text-2xl mb-2`}>
+                  Bufos
+                </p>
+                <div className="mb-2">{bufoList}</div>
+                <p className="text-xs text-gray-600">
+                  {uniqueBufoCount} unique bufos used
+                </p>
+              </div>
+            )}
+
+            {/* Reactions Section */}
+            <div className="mb-4">
+              <p className={`${homemadeApple.className} text-2xl mb-2`}>
+                Reactions
+              </p>
+              <div>{reacjiList}</div>
+            </div>
+          </div>
+        </div>
+      ),
+    });
+  }
 
   return stories;
 };
 
+// Original separate layout functions
 const EmojiCharts: StoryFunc = (data, config) => {
   const elements: Array<JSX.Element> = [];
 
@@ -42,7 +185,7 @@ const EmojiCharts: StoryFunc = (data, config) => {
     );
 
     elements.push(
-      <div className="mb-[30px]">
+      <div key={channelName} className="mb-[30px]">
         <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
         <div className="mb-[10px]">{emojiList}</div>
         <p className="text-sm text-gray-600">
@@ -54,7 +197,7 @@ const EmojiCharts: StoryFunc = (data, config) => {
 
   return [
     {
-      content: (props) => (
+      content: () => (
         <div className="text-black text-center w-full h-full bg-cover bg-notion-paper">
           <RandomEmojiBackground />
           <div className="w-full h-full p-8 pt-20">
@@ -93,20 +236,28 @@ const BufoCharts: StoryFunc = (data, config) => {
       (emoji) => emoji.startsWith("bufo"),
     ).length;
 
-    elements.push(
-      <div className="mb-[30px]">
-        <p className={`${homemadeApple.className} text-2xl`}>#{channelName}</p>
-        <div className="mb-[10px]">{emojiList}</div>
-        <p className="text-sm text-gray-600">
-          We used {uniqueBufoCount} unique bufos in 2024
-        </p>
-      </div>,
-    );
+    if (uniqueBufoCount > 0) {
+      elements.push(
+        <div key={channelName} className="mb-[30px]">
+          <p className={`${homemadeApple.className} text-2xl`}>
+            #{channelName}
+          </p>
+          <div className="mb-[10px]">{emojiList}</div>
+          <p className="text-sm text-gray-600">
+            We used {uniqueBufoCount} unique bufos in 2024
+          </p>
+        </div>,
+      );
+    }
+  }
+
+  if (elements.length === 0) {
+    return [];
   }
 
   return [
     {
-      content: (props) => (
+      content: () => (
         <div className="text-black text-center w-full h-full bg-cover bg-notion-paper">
           <RandomEmojiBackground />
           <div className="w-full h-full p-8 pt-20">
@@ -135,9 +286,6 @@ const ChannelSummaries: StoryFunc = (data, config) => {
       continue;
     }
 
-    const dayWithMostMessages = formatDate(
-      channelData.dayWithMostMessages!.day,
-    );
     const favoriteReacji = getSortedEmoji(channelData.reacji!, 6);
     const reacjiList = EmojiList(favoriteReacji, data);
     const topPostersWithoutBots: Record<string, number> = {};
@@ -163,50 +311,30 @@ const ChannelSummaries: StoryFunc = (data, config) => {
       );
     }
 
-    stories.push(
-      {
-        content: (props) => (
-          <div className="text-black text-center w-full h-full p-8 bg-notion-paper pt-20">
-            <p className={`${homemadeApple.className} text-2xl`}>
-              #{channelName}
+    stories.push({
+      content: () => (
+        <div className="text-black text-center w-full h-full p-8 bg-notion-paper pt-20">
+          <p className={`${homemadeApple.className} text-2xl`}>
+            #{channelName}
+          </p>
+          <p className="mt-[30px]">
+            In {config.periodName},{" "}
+            <span className="font-bold">
+              {n(channelData.messageCount)} messages
+            </span>{" "}
+            were written. The top 3 chatterbugs were{" "}
+            {recordToNameAndNumber(topPostersWithoutBots, "messages", 3)}.
+          </p>
+          {botsContentsMaybe}
+          <div>
+            <p className={`mt-[30px] text-xl ${homemadeApple.className}`}>
+              Reacji Charts
             </p>
-            <p className="mt-[30px]">
-              In {config.periodName},{" "}
-              <span className="font-bold">
-                {n(channelData.messageCount)} messages
-              </span>{" "}
-              were written. The top 3 chatterbugs were{" "}
-              {recordToNameAndNumber(topPostersWithoutBots, "messages", 3)}.
-            </p>
-            {botsContentsMaybe}
-            <div>
-              <p className={`mt-[30px] text-xl ${homemadeApple.className}`}>
-                Reacji Charts
-              </p>
-              <p>{reacjiList}</p>
-            </div>
+            <p>{reacjiList}</p>
           </div>
-        ),
-      },
-      {
-        content: (props) => (
-          <div className="bg-[conic-gradient(at_top_right,var(--tw-gradient-stops))] from-black via-gray-800 to-white text-center w-full h-full p-8 bg-cover pt-20">
-            <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-25 brightness-100 contrast-150"></div>
-            <p className={`${homemadeApple.className} text-2xl`}>
-              #{channelName}
-            </p>
-            <p className="mt-[30px]">
-              The day with the most messages was {dayWithMostMessages} with{" "}
-              {n(channelData.dayWithMostMessages!.count)} messages.
-            </p>
-            <BarChart
-              data={channelData.messageCountByDay!}
-              barClassName="bg-white text-black"
-            />
-          </div>
-        ),
-      },
-    );
+        </div>
+      ),
+    });
   }
 
   return stories;

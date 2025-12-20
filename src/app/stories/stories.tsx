@@ -32,8 +32,8 @@ export default function Stories({ data, config }: StoriesProps) {
     ...GitHubStories(data, config),
     ...GitStories(data, config),
     ...ProjectsStory(data, config),
-    ...LifeMomentsStory(data, config),
     ...HighlightStories(data, config),
+    ...LifeMomentsStory(data, config),
     ...OutroStory(data, config),
   ];
 

@@ -9,6 +9,7 @@ const homemadeApple = Homemade_Apple({ subsets: ["latin"], weight: "400" });
 const MOMENT_EMOJIS: Record<string, string> = {
   baby: "👶",
   birthday: "🎂",
+  engagement: "💍",
   wedding: "💒",
   promotion: "🎉",
   anniversary: "💍",
@@ -18,6 +19,7 @@ const MOMENT_EMOJIS: Record<string, string> = {
 const MOMENT_TITLES: Record<string, string> = {
   baby: "New Addition!",
   birthday: "Happy Birthday!",
+  engagement: "Congratulations!",
   wedding: "Just Married!",
   promotion: "Congrats!",
   anniversary: "Anniversary!",

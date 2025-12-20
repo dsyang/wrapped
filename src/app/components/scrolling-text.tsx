@@ -24,10 +24,10 @@ const ScrollingText: React.FC<ScrollingTextProps> = ({
   const dynamicOffset = strings.length * 25;
 
   const dynamicStyle = {
-    animationName: 'scroll-up-dynamic',
-    animationDuration: '10s',
-    animationTimingFunction: 'linear',
-    animationIterationCount: 'infinite',
+    animationName: "scroll-up-dynamic",
+    animationDuration: "10s",
+    animationTimingFunction: "linear",
+    animationIterationCount: "infinite",
   };
 
   return (

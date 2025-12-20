@@ -45,13 +45,17 @@ const LifeMomentsStory: StoryFunc = (data, config) => {
           We Celebrated
         </p>
         <div className="text-6xl mb-8 flex justify-center gap-4">
-          {Array.from(new Set(lifeMoments.map((m) => MOMENT_EMOJIS[m.type]))).map(
-            (emoji, i) => (
-              <span key={i} className="animate-bounce" style={{ animationDelay: `${i * 0.15}s` }}>
-                {emoji}
-              </span>
-            )
-          )}
+          {Array.from(
+            new Set(lifeMoments.map((m) => MOMENT_EMOJIS[m.type])),
+          ).map((emoji, i) => (
+            <span
+              key={i}
+              className="animate-bounce"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            >
+              {emoji}
+            </span>
+          ))}
         </div>
         <p className="text-lg text-gray-600 mt-auto mb-20">
           Special moments in {config.periodName}
@@ -79,7 +83,7 @@ const LifeMomentsStory: StoryFunc = (data, config) => {
           />
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
-          
+
           {/* Top badge */}
           <div className="absolute top-8 left-0 right-0 flex justify-center">
             <div className="bg-white/90 backdrop-blur-sm text-black px-4 py-2 rounded-full text-sm font-medium shadow-lg flex items-center gap-2">
@@ -91,7 +95,9 @@ const LifeMomentsStory: StoryFunc = (data, config) => {
           {/* Caption */}
           <div className={`w-full absolute ${captionPosition}`}>
             <div className="bg-black/80 backdrop-blur-sm text-white w-4/5 mx-auto p-3 text-center rounded-xl select-none shadow-xl">
-              <p className={`${homemadeApple.className} text-xl`}>{captionText}</p>
+              <p className={`${homemadeApple.className} text-xl`}>
+                {captionText}
+              </p>
             </div>
           </div>
         </div>
@@ -103,4 +109,3 @@ const LifeMomentsStory: StoryFunc = (data, config) => {
 };
 
 export default LifeMomentsStory;
-

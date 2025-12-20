@@ -12,7 +12,7 @@ const ThankYou: React.FC<EmojiProps> = ({ data }: EmojiProps) => {
       className="bg-black hover:invert text-white w-1/2 mx-auto mt-3 p-1 pt-1.5 text-xs text-center rounded-xl select-none"
     >
       <a
-        href="https://github.com/felixrieseberg/wrapped"
+        href="https://github.com/dsyang/wrapped"
         target="_blank"
         rel="noopener noreferrer"
       >

@@ -8,7 +8,7 @@ It's fully configurable, meaning that you too can create a "Wrapped" for your te
 First, clone this entire repository and install dependencies:
 
 ```
-git clone https://github.com/felixrieseberg/wrapped
+git clone https://github.com/dsyang/wrapped
 cd wrapped
 npm i
 ```
@@ -32,17 +32,25 @@ Below is an example file.
     {
       "name": "Big Bird",
       "github": "bigbird",
+      "slack": "bigbird",
+      "from": "2023-01-15",
+      "to": "2023-12-31",
+      "excludeFromLeaderboard": false,
+      "new": false,
+      "photo": "/photos/bigbird.jpg",
       "highlight": {
-        "photo": "/data/bigbird_highlight.jpg"
+        "photo": "/photos/bigbird_highlight.jpg",
+        "caption": "Had an amazing time at the team retreat!",
+        "captionPosition": "bottom"
       }
     },
     {
       "name": "Cookie Monster",
       "github": "cookiemonster",
       "new": true,
-      "photo": "/data/cookie.jpg",
+      "photo": "/photos/cookie.jpg",
       "highlight": {
-        "photo": "/data/cookie_highlight.jpg",
+        "photo": "/photos/cookie_highlight.jpg",
         "caption": "I got to enjoy a bunch of cookies during my vacation in Hawaii!",
         "captionPosition": "top"
       }
@@ -51,9 +59,9 @@ Below is an example file.
       "name": "Count von Count",
       "github": "countvcount",
       "new": true,
-      "photo": "/data/count.jpg",
+      "photo": "/photos/count.jpg",
       "highlight": {
-        "photo": "/data/count_highlight.jpg",
+        "photo": "/photos/count_highlight.jpg",
         "caption": "Here's a picture of me at Glacier national park during road trip to Chicago!"
       }
     },
@@ -70,15 +78,37 @@ Below is an example file.
   ],
   "highlights": [
     {
-      "photo": "/data/team_highlight.jpg",
+      "photo": "/photos/team_highlight.jpg",
       "caption": "We had fun at the team offsite!",
       "captionPosition": "top"
+    }
+  ],
+  "lifeMoments": [
+    {
+      "photo": "/photos/baby.jpg",
+      "name": "Sarah",
+      "type": "baby",
+      "caption": "Welcome baby Emma!",
+      "captionPosition": "bottom"
+    },
+    {
+      "photo": "/photos/wedding.jpg",
+      "name": "John",
+      "type": "wedding",
+      "caption": "Congratulations on your wedding!"
+    },
+    {
+      "photo": "/photos/promotion.jpg",
+      "name": "Alice",
+      "type": "promotion",
+      "caption": "Well-deserved promotion to Senior Engineer!"
     }
   ],
   "git": {
     "repoPath": "/Users/felix/code/notion-next",
     "folders": [
-      "src/desktop"
+      "src/desktop",
+      "src/client"
     ]
   },
   "github": {
@@ -96,7 +126,14 @@ Below is an example file.
       "github",
       "link",
       "v"
-    ]
+    ],
+    "ignoreBots": [
+      "github",
+      "slackbot"
+    ],
+    "storyOptions": {
+      "oneStoryPerChannel": "auto"
+    }
   },
   "projects": ["My cool project A", "My cool project B"]
 }
@@ -108,10 +145,11 @@ Below is an example file.
 Then, fetch data with `npm run cli create`. The command takes a few CLI arguments:
 
  - `--skip-git`: Don't fetch `git` information
- - `--skit-github`: Don't fetch GitHub information
+ - `--skip-github`: Don't fetch GitHub information
  - `--skip-slack`: Don't fetch Slack information
  - `--skip-fetch`: Will still run all the fetchers but instructs the fetchers to 
   avoid fetching new data if possible.
+ - `--refresh-prs`: Force refresh all GitHub PR data (ignore cache)
 
 ### 3. Create the Website
 
@@ -129,7 +167,29 @@ The command line tools available are:
 
 ### 4. Deployment
 
-Before deploying, I suggest removing the tokens from the config file.
+Before deploying, prepare your project for publishing:
+
+```bash
+npm run publish-ready
+```
+
+This command will:
+- Build the project
+- Remove sensitive tokens from config.json
+- Clean up large data files (keeping only *.light.json files)
+- Help you manage Vercel project configurations
+
+For deploying to Vercel with multiple projects:
+
+```bash
+# Deploy to production
+vercel --prod
+
+# Or if you have multiple Vercel projects configured:
+# The publish-ready script will help you select the right project configuration
+npm run publish-ready
+vercel --prod
+```
 
 ### License
 

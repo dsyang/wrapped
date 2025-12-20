@@ -16,7 +16,7 @@
     "lint": "next lint",
     "cli": "tsx src/data/main.ts",
     "prettier": "prettier --write src/",
-    "publish-ready": "npm run build && ./scripts/clean-for-publishing.sh"
+    "publish-ready": "npm run build && ./scripts/prepare-for-publishing.sh"
   },
   "dependencies": {
     "@octokit/plugin-throttling": "^8.1.3",

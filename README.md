@@ -137,8 +137,14 @@ Below is an example file.
   },
   "projects": ["My cool project A", "My cool project B"]
 }
-
 ```
+
+**Note:** This example shows a subset of team members and projects for brevity. See [`src/data/config.ts`](src/data/config.ts) for all available configuration options including:
+- Per-person date ranges (`from`/`to`)
+- Custom Slack usernames (`slack` field)
+- Leaderboard exclusions (`excludeFromLeaderboard`)
+- Additional life moment types (`birthday`, `wedding`, `promotion`, `anniversary`)
+- And more!
 </details>
 
 ### 2. Fetch Data
@@ -147,9 +153,9 @@ Then, fetch data with `npm run cli create`. The command takes a few CLI argument
  - `--skip-git`: Don't fetch `git` information
  - `--skip-github`: Don't fetch GitHub information
  - `--skip-slack`: Don't fetch Slack information
- - `--skip-fetch`: Will still run all the fetchers but instructs the fetchers to 
+ - `--skip-fetch`: Will still run all the fetchers but instructs the fetchers to
   avoid fetching new data if possible.
- - `--refresh-prs`: Force refresh all GitHub PR data (ignore cache)
+ - `--refresh-prs`: Reset github cache to assume there are more PRs
 
 ### 3. Create the Website
 
